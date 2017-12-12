@@ -128,6 +128,22 @@ Open \emph{GitKraken}.
     \item On the toolbar at the top of GitKraken, click on the \emph{Push} icon.
 \end{enumerate}
 
+\chapter{Eclipse Preferences}
+\section{How To Prevent Eclipse from Connecting to Git When a Project is Opened}
+
+If you want to use Git separately from Eclipse, you will also want to prevent Eclipse from automatically connecting your project to Git when you open the project.
+
+To do this, select:
+
+\begin{verbatim}
+    Preferences > Team > Git > Projects
+\end{verbatim}
+
+Then uncheck the box that says:
+
+\begin{verbatim}
+Automatically share projects located in a Git repository.    
+\end{verbatim}
 \chapter{Tags}
 
 \section{Set\textunderscore Date End\textunderscore Date}
@@ -180,6 +196,59 @@ If in the header of a topmost template you set the month and day to zero, the da
 \begin{warning}
 Before the generator processes the lines of a template, it scans the template to find the first occurrence of a \aTag{Set}{Date}.  It will use that to set the date.  If you put a date sensitive tag before a \aTag{Set}{Date}, the generator will set the date first, then process each line of the template, including the date sensitive tag that occurred before the \aTag{Set}{Date}.
 \end{warning}
+
+\chapter{Transformer Utilities}
+
+This chapter provides information about various utilities that can be run to transform information in one file into another file.  For example, there is a utility to transform FO files into PDF files, and HTML files in ePub files.  Each type of utility is described below in its own section.
+
+\section{Synch Utility}
+
+The \emph{Synch} utility is used to keep local \emph{ares} files and the \emph{IOC Liturgical Database} synchronized.  In order for synchronization to work properly, there are some steps the ALWB user must take.
+
+\subsection{What Gets Synchronized}
+
+The \emph{Synch} utility only synchronizes \emph{ares} files in a Git repository that you have flagged for synchronization.  It will only synchronize key-value pairs where the value is text.  It does not synchronize a key whose value is a redirect to another key.  That is because the \emph{IOC Liturgical Database} only needs the text values.
+
+\subsection{Preparing a Git Repository for Synchronization}
+
+Each ALWB library has a local Git repository, and one on Github. The \emph{Synch} utility talks to the local Git repository to determine what has changed.  In order for this happen, there are steps that you have to take.
+
+\subsubsection{.synch file}
+For each library that you want to include in the synchronization, you have to add a file in the repository folder.  The name of the file is \emph{.synch}.  Note the dot in from of the name.  You will create it as an empty file.  
+
+Create the \emph{.synch} file in the same folder as your \emph{.git} directory.  
+
+For example, if you have a repository folder named \emph{ages-alwb-library-en-us-dedes}, and it contains the folder \emph{net.ages.liturgical.workbench.library\textunderscore  en\textunderscore US\textunderscore dedes}, you place the \emph{.synch} in the parent folder, that is, \emph{ages-alwb-library-en-us-dedes}.  You can tell if you are placing it in the correct folder by opening a command window and entering the command \emph{dir .git} (on Windows) or \emph{ls .git} on Linux or Mac OS.  If the \emph{.git} directory is found, then you are in the correct directory to add the \emph{.synch} file.
+
+The \emph{.synch} file has two purposes.  First, it lets the \emph{Synch} utility know that you want this Git repository to be synchronized with the database.  Second, after the \emph{Synch} utility has processed the repository, it will write information to the \emph{.synch} file as a record of the date the synchronization was done, what Git commit ID was used for the synchronization, and how many changes were processed.
+
+\begin{warning}
+Once you create a \emph{.synch} file, do not edit its contents. You may delete the file, but then it will no longer be included in the synchronization process.  
+\end{warning}
+
+\subsubsection{Renaming a Key}
+
+Fortunately, the Synch utility is able to detect all changes you make to ares files by reading the Git repository.  However, there is one type of change that the utility cannot reliably detect unless you help it.  
+
+The problem is that Git will treat the rename of a key as two events: the deletion of the line that had the original key, and the insertion of a new line with the new key.  Using only information from Git, there is no reliable method for the \emph{Synch} utility to know that the deletion and insertion are in fact the renaming of a key.  For Git, this is not a problem.  But for the database, we don't want to delete the record for this key-value and add a new one.  Instead, we want to rename the key and thereby preserve other information in the database that relies on the ID of the record.
+
+Because of this problem, if you rename an ares key, the Synch utility needs your help to know about it.
+
+For example, lets say you have the following:
+
+\begin{verbatim}
+euCON.Key1000.title = "THE PREPARATION OF THE HOLY RELICS"    
+\end{verbatim}
+
+And, you want to rename the key \emph{euCON.Key1000.title} to \emph{euCON.Key0000.title}.
+
+The steps you take are first, copy the current key and add it as a comment, but wrap it with the tilde character.  Second, rename the key, and save the ares file.  The end result will look like this:
+
+\begin{verbatim}
+euCON.Key0000.title = "THE PREPARATION OF THE HOLY RELICS" // ~euCON.Key1000.title~    
+\end{verbatim}
+
+That way, when the \emph{Synch} utility processes the change, it can check the comment and see if there is a key there that is wrapped in tildes.  If so, it knows that the key (on the left) is a rename from the key in the comment.  
 
 \vfill
 
