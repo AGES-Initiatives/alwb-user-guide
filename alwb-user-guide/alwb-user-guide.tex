@@ -201,29 +201,107 @@ Before the generator processes the lines of a template, it scans the template to
 
 This chapter provides information about various utilities that can be run to transform information in one file into another file.  For example, there is a utility to transform FO files into PDF files, and HTML files in ePub files.  Each type of utility is described below in its own section.
 
-\section{Synch Utility}
+\section{GitHub Utilities}
 
-The \emph{Synch} utility is used to keep local \emph{ares} files and the \emph{IOC Liturgical Database} synchronized.  In order for synchronization to work properly, there are some steps the ALWB user must take.
+There are three Java files you can use to keep local repositories and Github up-to-date:
 
-\subsection{What Gets Synchronized}
+\begin{enumerate}
+    \item RunToPullAllRepositories
+    \item RunToResetAllRepositories
+    \item RunToPushAllRepositories
+\end{enumerate}
 
-The \emph{Synch} utility only synchronizes \emph{ares} files in a Git repository that you have flagged for synchronization.  It will only synchronize key-value pairs where the value is text.  It does not synchronize a key whose value is a redirect to another key.  That is because the \emph{IOC Liturgical Database} only needs the text values.
+They are found in the folder \textit{net.ages.liturgical.workbench.transformer.git}.
 
-\subsection{Preparing a Git Repository for Synchronization}
+Please read through this entire section before running them.
 
-Each ALWB library has a local Git repository, and one on Github. The \emph{Synch} utility talks to the local Git repository to determine what has changed.  In order for this happen, there are steps that you have to take.
+\subsection{Setup Common to All Three Java Files}
 
-\subsubsection{.synch file}
-For each library that you want to include in the synchronization, you have to add a file in the repository folder.  The name of the file is \emph{.synch}.  Note the dot in from of the name.  You will create it as an empty file.  
+For each of these three classes, it is necessary that you have all your git repositories under a single parent folder. 
 
-Create the \emph{.synch} file in the same folder as your \emph{.git} directory.  
+In each class, there in the main method, there is a variable \textit{alwbPath}.  You need to set its value to the path to the parent folder that contains allow the child repository folder.
 
-For example, if you have a repository folder named \emph{ages-alwb-library-en-us-dedes}, and it contains the folder \emph{net.ages.liturgical.workbench.library\textunderscore  en\textunderscore US\textunderscore dedes}, you place the \emph{.synch} in the parent folder, that is, \emph{ages-alwb-library-en-us-dedes}.  You can tell if you are placing it in the correct folder by opening a command window and entering the command \emph{dir .git} (on Windows) or \emph{ls .git} on Linux or Mac OS.  If the \emph{.git} directory is found, then you are in the correct directory to add the \emph{.synch} file.
+\begin{figure}[h!]
 
-The \emph{.synch} file has two purposes.  First, it lets the \emph{Synch} utility know that you want this Git repository to be synchronized with the database.  Second, after the \emph{Synch} utility has processed the repository, it will write information to the \emph{.synch} file as a record of the date the synchronization was done, what Git commit ID was used for the synchronization, and how many changes were processed.
+  \begin{center}
+\includegraphics[scale=0.25]{alwb-user-guide/system/images/ioc-liturgical-db-public-app/alwbPath.png}
+\end{center}
+  \caption{The main method and the variable alwbPath}
+\end{figure}
+
+\subsection{How to Run any of the Three Java files}
+
+For each class, you can right-click the filename and select \textit{Run as > Java Application}.
+
+\subsection{RunToPullAllRepositories}
+
+If you run this Java class, it will do a git pull from Github for all the repositories it finds in your parent folder.
+
+\subsection{RunToResetAllRepositories}
+
+If you run this Java class it will reset each repository so that it exactly matches what is currently in Github.  If you have made any changes, they will be lost.  If you have added any files that have not been committed and pushed, they will be lost.  This can, however, be very useful so that you know your repositories are identical to the ones in Github.
+
+\subsection{RunToPushAllRepositories}
+
+If you run this Java class, it will do the following:
+
+\begin{enumerate}
+    \item Add all files to the git index (except those excluded by the .gitignore file.
+    \item Commit the files
+    \item Do a pull.  This ensures that any files you have that you did not changed are up-to-date with Github.  This is important because sometimes a change occurs in Github since the last time you pulled.
+    \item Push the changes to Github.
+\end{enumerate}
 
 \begin{warning}
-Once you create a \emph{.synch} file, do not edit its contents. You may delete the file, but then it will no longer be included in the synchronization process.  
+There is extra configuration to do before you run this Java class.  See below.
+\end{warning}
+
+Before you run this Java class, you must add your Github username and password to the environmental variables.  Here is how to do this:
+
+\begin{enumerate}
+    \item Right-click the \textit{RunToPushAllRepositories.java} file and click on \textit{Properties}. 
+    \item In the left pane, select \textit{Run/Debug Settings}.
+    In the right pane, click the \textit{New} button.
+    \item Select \textit{Java Application} and click on the \textit{OK} button.
+    \item Click on the \textit{Environment} tab.  Refer to the next Figure for a screenshot.
+    \item Click on the \textit{New} button.
+    \item In the \textit{Name} field enter \textit{username}.  Spell it exactly like that, and all in lower case.
+    \item In the value field enter your Github username.
+    \item Click on \textit{OK}.
+        \item Click on the \textit{New} button.
+    \item In the \textit{Name} field enter \textit{pwd}.  Spell it exactly like that, and all in lower case.
+    \item In the value field enter your Github password.
+    \item Click on \textit{OK}.
+    \item Click on \textit{OK}.
+    \item Click on \textit{Apply and Close}.
+\end{enumerate}
+
+Now you can run the \textit{RunToPushAllRepositories} Java class.
+
+\begin{figure}[h!]
+
+  \begin{center}
+\includegraphics[scale=0.50]{alwb-user-guide/system/images/ioc-liturgical-db-public-app/envPropUsername.png}
+\end{center}
+  \caption{Setting environmental properties}
+\end{figure}
+
+\section{Database Synch Utility}
+
+The \emph{Database Synch} utility is used to keep local \emph{ares} files and the \emph{IOC Liturgical Database} synchronized.  In order for synchronization to work properly, there are some steps the ALWB user must take.
+
+\subsection{Renaming a File}
+In order to update the database, it is important to preserve the information about the old filename. In order for Git to preserve this information you must do the following:
+
+\begin{enumerate}
+    \item rename the file using your usual means.  Do NOT make any other changes to the file (i.e. adding, deleting, changing, renaming key-value pairs).
+    \item In your Git client (e.g. GitKraken), make sure it sees it as a file rename. 
+    \item Commit the change
+    \item Push the change to Github
+\end{enumerate}
+
+\begin{warning}
+If you also plan to change key-values in the file, make those changes first and commit and push them to Github, before you rename the file. If you rename a file and change its contents as a single commit, Git will not keep track of what the file was previously named.  
 \end{warning}
 
 \subsubsection{Renaming a Key}
